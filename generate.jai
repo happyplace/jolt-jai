@@ -41,33 +41,33 @@ DECLARATIONS_TO_OMIT :: string.[
 // this does not include ALL files in ObjectStream intentally, this matches what is defined in Jolt.cmake
 OBJECT_STREAM_SRC_FILES :: string.[
     "/ObjectStream/ObjectStream.cpp",
-	"/ObjectStream/GetPrimitiveTypeOfType.h",
-	"/ObjectStream/ObjectStream.cpp",
-	"/ObjectStream/ObjectStreamBinaryIn.cpp",
-	"/ObjectStream/ObjectStreamBinaryIn.h",
-	"/ObjectStream/ObjectStreamBinaryOut.cpp",
-	"/ObjectStream/ObjectStreamBinaryOut.h",
-	"/ObjectStream/ObjectStreamIn.cpp",
-	"/ObjectStream/ObjectStreamIn.h",
-	"/ObjectStream/ObjectStreamOut.cpp",
-	"/ObjectStream/ObjectStreamOut.h",
-	"/ObjectStream/ObjectStreamTextIn.cpp",
-	"/ObjectStream/ObjectStreamTextIn.h",
-	"/ObjectStream/ObjectStreamTextOut.cpp",
-	"/ObjectStream/ObjectStreamTextOut.h",
-	"/ObjectStream/ObjectStreamTypes.h",
-	"/ObjectStream/TypeDeclarations.cpp",
+    "/ObjectStream/GetPrimitiveTypeOfType.h",
+    "/ObjectStream/ObjectStream.cpp",
+    "/ObjectStream/ObjectStreamBinaryIn.cpp",
+    "/ObjectStream/ObjectStreamBinaryIn.h",
+    "/ObjectStream/ObjectStreamBinaryOut.cpp",
+    "/ObjectStream/ObjectStreamBinaryOut.h",
+    "/ObjectStream/ObjectStreamIn.cpp",
+    "/ObjectStream/ObjectStreamIn.h",
+    "/ObjectStream/ObjectStreamOut.cpp",
+    "/ObjectStream/ObjectStreamOut.h",
+    "/ObjectStream/ObjectStreamTextIn.cpp",
+    "/ObjectStream/ObjectStreamTextIn.h",
+    "/ObjectStream/ObjectStreamTextOut.cpp",
+    "/ObjectStream/ObjectStreamTextOut.h",
+    "/ObjectStream/ObjectStreamTypes.h",
+    "/ObjectStream/TypeDeclarations.cpp",
 ];
 
 RENDERER_SRC_FILES :: string.[
-	"Renderer/DebugRenderer.cpp",
-	"Renderer/DebugRenderer.h",
-	"Renderer/DebugRendererPlayback.cpp",
-	"Renderer/DebugRendererPlayback.h",
-	"Renderer/DebugRendererRecorder.cpp",
-	"Renderer/DebugRendererRecorder.h",
-	"Renderer/DebugRendererSimple.cpp",
-	"Renderer/DebugRendererSimple.h",
+    "Renderer/DebugRenderer.cpp",
+    "Renderer/DebugRenderer.h",
+    "Renderer/DebugRendererPlayback.cpp",
+    "Renderer/DebugRendererPlayback.h",
+    "Renderer/DebugRendererRecorder.cpp",
+    "Renderer/DebugRendererRecorder.h",
+    "Renderer/DebugRendererSimple.cpp",
+    "Renderer/DebugRendererSimple.h",
 ];
 
 jolt_physics_include_files: [..] string;
@@ -82,32 +82,32 @@ generate_bindings :: (args: [] string) -> bool {
             if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
                 return;
             }
-			
-			if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-				return;
-			}
+
+            if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
+                return;
+            }
 
             if (!contains(info.full_name, ".cpp")) {
                 return;
             }
-			
-			array_add(*jolt_physics_src_files, info.full_name);
+
+            array_add(*jolt_physics_src_files, info.full_name);
         }
 
         success := true;
         visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, source_file_visitor_func, 
             visit_files=true, visit_directories=true);
-		defer free(jolt_physics_src_files.data);
+        defer free(jolt_physics_src_files.data);
 
         extra: [..] string;
         defer free(extra.data);
 
-		array_add(*extra, tprint("-I./%/", JOLT_PHYSICS_PATH));
+        array_add(*extra, tprint("-I./%/", JOLT_PHYSICS_PATH));
 
         success = true;
         #if OS == .WINDOWS {
-			make_directory_if_it_does_not_exist("windows");
-			array_add(*extra, "/std:c++17");
+            make_directory_if_it_does_not_exist("windows");
+            array_add(*extra, "/std:c++17");
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
         else {
@@ -115,32 +115,32 @@ generate_bindings :: (args: [] string) -> bool {
         }
 
         if !success {
-			return false;
-		}
+            return false;
+        }
     }
 
     defer array_reset(*begin_end_string_args);
 
-	include_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
-		if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
-			return;
-		}
-		
-		if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-			print("found one\n");
-			return;
-		}
+    include_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
+        if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
+            return;
+        }
 
-		if (!contains(info.full_name, ".h")) {
-			return;
-		}
-		
-		array_add(*jolt_physics_include_files, info.full_name);
-	}
+        if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
+            print("found one\n");
+            return;
+        }
 
-	success := true;
-	visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, include_file_visitor_func, 
-		visit_files=true, visit_directories=true);
+        if (!contains(info.full_name, ".h")) {
+            return;
+        }
+
+        array_add(*jolt_physics_include_files, info.full_name);
+    }
+
+    success := true;
+    visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, include_file_visitor_func, 
+        visit_files=true, visit_directories=true);
 
     output_filename: string;
     opts: Generate_Bindings_Options;
@@ -150,7 +150,8 @@ generate_bindings :: (args: [] string) -> bool {
         #if OS == .WINDOWS {
             array_add(*library_search_paths, "windows");
             output_filename = "windows.jai";
-        } else {
+        }
+        else {
             #if OS == .LINUX {
                 array_add(*library_search_paths, "linux");
             } else #if OS == .MACOS {
@@ -164,19 +165,18 @@ generate_bindings :: (args: [] string) -> bool {
         }
         array_add(*libraries,     .{filename="jolt-physics"});
         array_add(*include_paths, JOLT_PHYSICS_PATH);
-		
-		array_reserve(*source_files, jolt_physics_include_files.count);
-		for jolt_physics_include_files {
-			array_add(*source_files, it);
-		}
-		
-        //array_add(*source_files,  tprint("%/Jolt/Jolt.h", JOLT_PHYSICS_PATH));
+
+        array_reserve(*source_files, jolt_physics_include_files.count);
+        for jolt_physics_include_files {
+            array_add(*source_files, it);
+        }
+
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN", "-std=c++17");
         auto_detect_enum_prefixes = false;
         log_stripped_declarations = false;
         generate_compile_time_struct_checks = false;
 
-        visitor   = imgui_visitor;
+        visitor = imgui_visitor;
         get_func_args_for_printing = imgui_get_function_arg_for_printing;
     }
 
@@ -270,12 +270,15 @@ imgui_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_
         // Here we collect pointers to "_begin" arguments, and use them in
         // get_func_args_for_printing below.
         for type.arguments {
-            if it_index == 0 || !ends_with(it.name, "_end")     continue;
+            if it_index == 0 || !ends_with(it.name, "_end")
+                continue;
             arg_type := find_underlying_type(it.type);
-            if !arg_type.pointer_to || !(arg_type.pointer_to.number_flags & ._8BIT) continue; // Only convert *u8 ranges to string
+            if !arg_type.pointer_to || !(arg_type.pointer_to.number_flags & ._8BIT) 
+                continue; // Only convert *u8 ranges to string
 
             name_part := slice(it.name, 0, it.name.count - "_end".count);
-            if !name_part   continue;
+            if !name_part
+                continue;
 
             // the first arg may appear as "text_begin" or just "text"
             name_part_with_begin := tprint("%_begin", name_part);
