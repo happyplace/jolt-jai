@@ -59,6 +59,9 @@ OBJECT_STREAM_SRC_FILES :: string.[
     "/ObjectStream/TypeDeclarations.cpp",
 ];
 
+// TODO: add support for debug renderer
+// the debug renderer needs directx and/or vulkan to work which is not currently supported
+// need to list these files so they can be excluded
 RENDERER_SRC_FILES :: string.[
     "Renderer/DebugRenderer.cpp",
     "Renderer/DebugRenderer.h",
@@ -70,6 +73,7 @@ RENDERER_SRC_FILES :: string.[
     "Renderer/DebugRendererSimple.h",
 ];
 
+// when true jolt physics will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 CROSS_PLATFORM_DETERMINISTIC := false;
 
 jolt_physics_include_files: [..] string;
