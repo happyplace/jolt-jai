@@ -70,6 +70,8 @@ RENDERER_SRC_FILES :: string.[
     "Renderer/DebugRendererSimple.h",
 ];
 
+CROSS_PLATFORM_DETERMINISTIC := false;
+
 jolt_physics_include_files: [..] string;
 jolt_physics_src_files: [..] string;
 
@@ -116,8 +118,17 @@ generate_bindings :: (args: [] string) -> bool {
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
             // TODO: figure out how to disable the other selected diagnostics and use classic
             // array_add(*extra, "/diagnostics:classic");
+            // TODO: figure out how to ensure /EHsc is not defined
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
             array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
+            array_add(*extra, "/GR-"); // disable RTTI
+
+            // made a huge assumption that this will always be using MSVC on windows
+            if CROSS_PLATFORM_DETERMINISTIC 
+                array_add(*extra, "/fp:precise");
+            else
+                array_add(*extra, "/fp:fast");
+
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
         else {
