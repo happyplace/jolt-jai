@@ -104,6 +104,12 @@ generate_bindings :: (args: [] string) -> bool {
 
         array_add(*extra, tprint("-I./%/", JOLT_PHYSICS_PATH));
 
+        // JoltPhysics-jai\joltphysics-src\Jolt\ConfigurationString.h
+        // - add: #include <Jolt/Core/Core.h> after pragma once
+
+        // JoltPhysics-jai\joltphysics-src\Jolt\Physics\Collision\CollideSoftBodyVerticesVsTriangles.h
+        // - add: #include <Jolt/Physics/Collision/Shape/ScaleHelpers.h> after the last include
+
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
