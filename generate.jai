@@ -127,7 +127,6 @@ generate_bindings :: (args: [] string) -> bool {
         }
 
         if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-            print("found one\n");
             return;
         }
 
