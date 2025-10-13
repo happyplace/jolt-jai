@@ -107,7 +107,11 @@ generate_bindings :: (args: [] string) -> bool {
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
-            array_add(*extra, "/std:c++17");
+            array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
+            // TODO: figure out how to disable the other selected diagnostics and use classic
+            // array_add(*extra, "/diagnostics:classic");
+            array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
+            array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
         else {
