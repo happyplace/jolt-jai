@@ -1,0 +1,9 @@
+joltphysics-src
+.build
+
+# generated windows library files and windows binding
+windows.jai
+windows
+
+# windows object files
+*.obj
