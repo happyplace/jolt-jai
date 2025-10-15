@@ -106,9 +106,6 @@ generate_bindings :: (args: [] string) -> bool {
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
-            // TODO: figure out how to disable the other selected diagnostics and use classic
-            // array_add(*extra, "/diagnostics:classic");
-            // TODO: figure out how to ensure /EHsc is not defined
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
             array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
             array_add(*extra, "/GR-"); // disable RTTI
@@ -204,3 +201,4 @@ FOOTER_UNIX :: #string END
 #if OS == .LINUX    imgui :: #library "linux/ImGui";
 
 END
+
