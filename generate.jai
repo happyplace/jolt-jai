@@ -1,7 +1,8 @@
 AT_COMPILE_TIME :: true;
 
-// We don’t include the Jolt Physics source with the bindings, download source code into joltphysics-src
-JOLT_PHYSICS_PATH :: "joltphysics-src";
+// We don’t include the Jolt Physics or JoltC source with the bindings, download source code into JoltC
+JOLTC_PATH :: "JoltC";
+JOLT_PHYSICS_PATH :: "JoltC/JoltPhysics";
 
 #if AT_COMPILE_TIME {
     #run,stallable {
@@ -62,7 +63,6 @@ RENDERER_SRC_FILES :: string.[
 // when true jolt physics will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 CROSS_PLATFORM_DETERMINISTIC := false;
 
-jolt_physics_include_files: [..] string;
 jolt_physics_src_files: [..] string;
 
 generate_bindings :: (args: [] string) -> bool {
@@ -91,22 +91,21 @@ generate_bindings :: (args: [] string) -> bool {
             visit_files=true, visit_directories=true);
         defer free(jolt_physics_src_files.data);
 
+        // JoltC source file
+        array_add(*jolt_physics_src_files, tprint("%/JoltCImpl/JoltC.cpp", JOLTC_PATH));
+
         extra: [..] string;
         defer free(extra.data);
 
         array_add(*extra, tprint("-I./%/", JOLT_PHYSICS_PATH));
-
-        // JoltPhysics-jai\joltphysics-src\Jolt\ConfigurationString.h
-        // - add: #include <Jolt/Core/Core.h> after pragma once
-
-        // JoltPhysics-jai\joltphysics-src\Jolt\Physics\Collision\CollideSoftBodyVerticesVsTriangles.h
-        // - add: #include <Jolt/Physics/Collision/Shape/ScaleHelpers.h> after the last include
+        array_add(*extra, tprint("-I./%/", JOLTC_PATH));
 
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
+            array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
             array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
             array_add(*extra, "/GR-"); // disable RTTI
 
@@ -127,25 +126,10 @@ generate_bindings :: (args: [] string) -> bool {
         }
     }
 
-    include_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
-        if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
-            return;
-        }
+    jolt_physics_include_files: [..] string;
+    defer free(jolt_physics_include_files.data);
 
-        if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-            return;
-        }
-
-        if (!contains(info.full_name, ".h")) {
-            return;
-        }
-
-        array_add(*jolt_physics_include_files, info.full_name);
-    }
-
-    success := true;
-    visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, include_file_visitor_func, 
-        visit_files=true, visit_directories=true);
+    array_add(*jolt_physics_include_files, tprint("%/JoltC/JoltC.h", JOLTC_PATH));
 
     output_filename: string;
     opts: Generate_Bindings_Options;
@@ -170,6 +154,7 @@ generate_bindings :: (args: [] string) -> bool {
         }
         array_add(*libraries,     .{filename="jolt-physics"});
         array_add(*include_paths, JOLT_PHYSICS_PATH);
+        array_add(*include_paths, JOLTC_PATH);
 
         array_reserve(*source_files, jolt_physics_include_files.count);
         for jolt_physics_include_files {
