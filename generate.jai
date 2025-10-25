@@ -8,7 +8,6 @@ POTENTIAL_JOLT_PHYSICS_PATHS :: string.[
     "build/_deps/joltphysics-src",
 ];
 
-
 #if AT_COMPILE_TIME {
     #run,stallable {
         set_build_options_dc(.{do_output=false});
@@ -120,14 +119,16 @@ generate_bindings :: (args: [] string) -> bool {
             visit_files=true, visit_directories=true);
         defer free(jolt_physics_src_files.data);
 
-        // JoltC source file
-        array_add(*jolt_physics_src_files, tprint("%/JoltCImpl/JoltC.cpp", JOLTC_PATH));
+        // joltc source file
+        array_add(*jolt_physics_src_files, tprint("%/src/joltc.c", JOLTC_PATH));
+        array_add(*jolt_physics_src_files, tprint("%/src/joltc.cpp", JOLTC_PATH));
+        array_add(*jolt_physics_src_files, tprint("%/src/joltc_assert.cpp", JOLTC_PATH));
 
         extra: [..] string;
         defer free(extra.data);
 
         array_add(*extra, tprint("-I./%/", jolt_physics_path));
-        array_add(*extra, tprint("-I./%/", JOLTC_PATH));
+        array_add(*extra, tprint("-I./%/include", JOLTC_PATH));
 
         success = true;
         #if OS == .WINDOWS {
@@ -137,6 +138,7 @@ generate_bindings :: (args: [] string) -> bool {
             array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
             array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
             array_add(*extra, "/GR-"); // disable RTTI
+            array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
 
             // made a huge assumption that this will always be using MSVC on windows
             if CROSS_PLATFORM_DETERMINISTIC
@@ -183,7 +185,7 @@ generate_bindings :: (args: [] string) -> bool {
         }
         array_add(*libraries,     .{filename="jolt-physics"});
         array_add(*include_paths, jolt_physics_path);
-        array_add(*include_paths, JOLTC_PATH);
+        array_add(*include_paths, tprint("%/include", JOLTC_PATH));
 
         array_reserve(*source_files, jolt_physics_include_files.count);
         for jolt_physics_include_files {
