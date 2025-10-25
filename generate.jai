@@ -1,8 +1,13 @@
 AT_COMPILE_TIME :: true;
 
 // We don’t include the Jolt Physics or JoltC source with the bindings, download source code into JoltC
-JOLTC_PATH :: "JoltC";
-JOLT_PHYSICS_PATH :: "JoltC/JoltPhysics";
+JOLTC_PATH :: "joltc";
+
+POTENTIAL_JOLT_PHYSICS_PATHS :: string.[
+    "JoltPhysics",
+    "build/_deps/joltphysics-src",
+];
+
 
 #if AT_COMPILE_TIME {
     #run,stallable {
@@ -69,6 +74,30 @@ generate_bindings :: (args: [] string) -> bool {
     compile        := array_find(args, "-compile");
     compile_debug  := array_find(args, "-debug");
 
+    jolt_physics_path : string;
+
+    if !file_exists(JOLTC_PATH) {
+        print(tprint("% does not exist. Download joltc source code into folder\n", JOLTC_PATH));
+        return false;
+    }
+
+    for POTENTIAL_JOLT_PHYSICS_PATHS {
+        potential_path := tprint("%/%", JOLTC_PATH, it);
+        if file_exists(potential_path) {
+            if is_directory(potential_path) {
+                jolt_physics_path = potential_path;
+            }
+            else {
+                print(tprint("% exists, but it's a file instead of a folder", potential_path));
+            }
+        }
+    }
+
+    if jolt_physics_path.count <= 0 {
+        print("Jolt Physics source code is not in the joltc folder, download into the \"JoltPhysics\" subdirectory or use cmake to download it automatically\n");
+        return false;
+    }
+
     if compile {
         source_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
             if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
@@ -87,7 +116,7 @@ generate_bindings :: (args: [] string) -> bool {
         }
 
         success := true;
-        visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, source_file_visitor_func, 
+        visit_files(tprint("%/Jolt", jolt_physics_path), recursive=true, *success, source_file_visitor_func,
             visit_files=true, visit_directories=true);
         defer free(jolt_physics_src_files.data);
 
@@ -97,7 +126,7 @@ generate_bindings :: (args: [] string) -> bool {
         extra: [..] string;
         defer free(extra.data);
 
-        array_add(*extra, tprint("-I./%/", JOLT_PHYSICS_PATH));
+        array_add(*extra, tprint("-I./%/", jolt_physics_path));
         array_add(*extra, tprint("-I./%/", JOLTC_PATH));
 
         success = true;
@@ -110,7 +139,7 @@ generate_bindings :: (args: [] string) -> bool {
             array_add(*extra, "/GR-"); // disable RTTI
 
             // made a huge assumption that this will always be using MSVC on windows
-            if CROSS_PLATFORM_DETERMINISTIC 
+            if CROSS_PLATFORM_DETERMINISTIC
                 array_add(*extra, "/fp:precise");
             else
                 array_add(*extra, "/fp:fast");
@@ -129,7 +158,7 @@ generate_bindings :: (args: [] string) -> bool {
     jolt_physics_include_files: [..] string;
     defer free(jolt_physics_include_files.data);
 
-    array_add(*jolt_physics_include_files, tprint("%/JoltC/JoltC.h", JOLTC_PATH));
+    array_add(*jolt_physics_include_files, tprint("%/include/joltc.h", JOLTC_PATH));
 
     output_filename: string;
     opts: Generate_Bindings_Options;
@@ -153,7 +182,7 @@ generate_bindings :: (args: [] string) -> bool {
             footer = FOOTER_UNIX;
         }
         array_add(*libraries,     .{filename="jolt-physics"});
-        array_add(*include_paths, JOLT_PHYSICS_PATH);
+        array_add(*include_paths, jolt_physics_path);
         array_add(*include_paths, JOLTC_PATH);
 
         array_reserve(*source_files, jolt_physics_include_files.count);
@@ -186,4 +215,3 @@ FOOTER_UNIX :: #string END
 #if OS == .LINUX    imgui :: #library "linux/ImGui";
 
 END
-
