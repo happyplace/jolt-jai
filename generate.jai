@@ -29,41 +29,6 @@ POTENTIAL_JOLT_PHYSICS_PATHS :: string.[
     }
 }
 
-// this does not include ALL files in ObjectStream intentally, this matches what is defined in Jolt.cmake
-OBJECT_STREAM_SRC_FILES :: string.[
-    "ObjectStream/ObjectStream.cpp",
-    "ObjectStream/GetPrimitiveTypeOfType.h",
-    "ObjectStream/ObjectStream.cpp",
-    "ObjectStream/ObjectStreamBinaryIn.cpp",
-    "ObjectStream/ObjectStreamBinaryIn.h",
-    "ObjectStream/ObjectStreamBinaryOut.cpp",
-    "ObjectStream/ObjectStreamBinaryOut.h",
-    "ObjectStream/ObjectStreamIn.cpp",
-    "ObjectStream/ObjectStreamIn.h",
-    "ObjectStream/ObjectStreamOut.cpp",
-    "ObjectStream/ObjectStreamOut.h",
-    "ObjectStream/ObjectStreamTextIn.cpp",
-    "ObjectStream/ObjectStreamTextIn.h",
-    "ObjectStream/ObjectStreamTextOut.cpp",
-    "ObjectStream/ObjectStreamTextOut.h",
-    "ObjectStream/ObjectStreamTypes.h",
-    "ObjectStream/TypeDeclarations.cpp",
-];
-
-// TODO: add support for debug renderer
-// the debug renderer needs directx and/or vulkan to work which is not currently supported
-// need to list these files so they can be excluded
-RENDERER_SRC_FILES :: string.[
-    "Renderer/DebugRenderer.cpp",
-    "Renderer/DebugRenderer.h",
-    "Renderer/DebugRendererPlayback.cpp",
-    "Renderer/DebugRendererPlayback.h",
-    "Renderer/DebugRendererRecorder.cpp",
-    "Renderer/DebugRendererRecorder.h",
-    "Renderer/DebugRendererSimple.cpp",
-    "Renderer/DebugRendererSimple.h",
-];
-
 // when true jolt physics will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 CROSS_PLATFORM_DETERMINISTIC := false;
 
@@ -99,14 +64,6 @@ generate_bindings :: (args: [] string) -> bool {
 
     if compile {
         source_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
-            if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
-                return;
-            }
-
-            if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-                return;
-            }
-
             if (!contains(info.full_name, ".cpp")) {
                 return;
             }
@@ -217,3 +174,4 @@ FOOTER_UNIX :: #string END
 #if OS == .LINUX    imgui :: #library "linux/ImGui";
 
 END
+
