@@ -1,7 +1,12 @@
 AT_COMPILE_TIME :: true;
 
-// We don’t include the Jolt Physics source with the bindings, download source code into joltphysics-src
-JOLT_PHYSICS_PATH :: "joltphysics-src";
+// We don’t include the Jolt Physics or JoltC source with the bindings, download source code into JoltC
+JOLTC_PATH :: "joltc";
+
+POTENTIAL_JOLT_PHYSICS_PATHS :: string.[
+    "JoltPhysics",
+    "build/_deps/joltphysics-src",
+];
 
 #if AT_COMPILE_TIME {
     #run,stallable {
@@ -24,61 +29,41 @@ JOLT_PHYSICS_PATH :: "joltphysics-src";
     }
 }
 
-// this does not include ALL files in ObjectStream intentally, this matches what is defined in Jolt.cmake
-OBJECT_STREAM_SRC_FILES :: string.[
-    "/ObjectStream/ObjectStream.cpp",
-    "/ObjectStream/GetPrimitiveTypeOfType.h",
-    "/ObjectStream/ObjectStream.cpp",
-    "/ObjectStream/ObjectStreamBinaryIn.cpp",
-    "/ObjectStream/ObjectStreamBinaryIn.h",
-    "/ObjectStream/ObjectStreamBinaryOut.cpp",
-    "/ObjectStream/ObjectStreamBinaryOut.h",
-    "/ObjectStream/ObjectStreamIn.cpp",
-    "/ObjectStream/ObjectStreamIn.h",
-    "/ObjectStream/ObjectStreamOut.cpp",
-    "/ObjectStream/ObjectStreamOut.h",
-    "/ObjectStream/ObjectStreamTextIn.cpp",
-    "/ObjectStream/ObjectStreamTextIn.h",
-    "/ObjectStream/ObjectStreamTextOut.cpp",
-    "/ObjectStream/ObjectStreamTextOut.h",
-    "/ObjectStream/ObjectStreamTypes.h",
-    "/ObjectStream/TypeDeclarations.cpp",
-];
-
-// TODO: add support for debug renderer
-// the debug renderer needs directx and/or vulkan to work which is not currently supported
-// need to list these files so they can be excluded
-RENDERER_SRC_FILES :: string.[
-    "Renderer/DebugRenderer.cpp",
-    "Renderer/DebugRenderer.h",
-    "Renderer/DebugRendererPlayback.cpp",
-    "Renderer/DebugRendererPlayback.h",
-    "Renderer/DebugRendererRecorder.cpp",
-    "Renderer/DebugRendererRecorder.h",
-    "Renderer/DebugRendererSimple.cpp",
-    "Renderer/DebugRendererSimple.h",
-];
-
 // when true jolt physics will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 CROSS_PLATFORM_DETERMINISTIC := false;
 
-jolt_physics_include_files: [..] string;
 jolt_physics_src_files: [..] string;
 
 generate_bindings :: (args: [] string) -> bool {
     compile        := array_find(args, "-compile");
     compile_debug  := array_find(args, "-debug");
 
+    jolt_physics_path : string;
+
+    if !file_exists(JOLTC_PATH) {
+        print(tprint("% does not exist. Download joltc source code into folder\n", JOLTC_PATH));
+        return false;
+    }
+
+    for POTENTIAL_JOLT_PHYSICS_PATHS {
+        potential_path := tprint("%/%", JOLTC_PATH, it);
+        if file_exists(potential_path) {
+            if is_directory(potential_path) {
+                jolt_physics_path = potential_path;
+            }
+            else {
+                print(tprint("% exists, but it's a file instead of a folder", potential_path));
+            }
+        }
+    }
+
+    if jolt_physics_path.count <= 0 {
+        print("Jolt Physics source code is not in the joltc folder, download into the \"JoltPhysics\" subdirectory or use cmake to download it automatically\n");
+        return false;
+    }
+
     if compile {
         source_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
-            if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
-                return;
-            }
-
-            if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-                return;
-            }
-
             if (!contains(info.full_name, ".cpp")) {
                 return;
             }
@@ -87,31 +72,33 @@ generate_bindings :: (args: [] string) -> bool {
         }
 
         success := true;
-        visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, source_file_visitor_func, 
+        visit_files(tprint("%/Jolt", jolt_physics_path), recursive=true, *success, source_file_visitor_func,
             visit_files=true, visit_directories=true);
         defer free(jolt_physics_src_files.data);
+
+        // joltc source file
+        array_add(*jolt_physics_src_files, tprint("%/src/joltc.c", JOLTC_PATH));
+        array_add(*jolt_physics_src_files, tprint("%/src/joltc.cpp", JOLTC_PATH));
+        array_add(*jolt_physics_src_files, tprint("%/src/joltc_assert.cpp", JOLTC_PATH));
 
         extra: [..] string;
         defer free(extra.data);
 
-        array_add(*extra, tprint("-I./%/", JOLT_PHYSICS_PATH));
-
-        // JoltPhysics-jai\joltphysics-src\Jolt\ConfigurationString.h
-        // - add: #include <Jolt/Core/Core.h> after pragma once
-
-        // JoltPhysics-jai\joltphysics-src\Jolt\Physics\Collision\CollideSoftBodyVerticesVsTriangles.h
-        // - add: #include <Jolt/Physics/Collision/Shape/ScaleHelpers.h> after the last include
+        array_add(*extra, tprint("-I./%/", jolt_physics_path));
+        array_add(*extra, tprint("-I./%/include", JOLTC_PATH));
 
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
+            array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
             array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
             array_add(*extra, "/GR-"); // disable RTTI
+            array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
 
             // made a huge assumption that this will always be using MSVC on windows
-            if CROSS_PLATFORM_DETERMINISTIC 
+            if CROSS_PLATFORM_DETERMINISTIC
                 array_add(*extra, "/fp:precise");
             else
                 array_add(*extra, "/fp:fast");
@@ -127,25 +114,10 @@ generate_bindings :: (args: [] string) -> bool {
         }
     }
 
-    include_file_visitor_func :: (info: *File_Visit_Info, success: *bool) {
-        if contains_any_string(info.full_name, ..OBJECT_STREAM_SRC_FILES) {
-            return;
-        }
+    jolt_physics_include_files: [..] string;
+    defer free(jolt_physics_include_files.data);
 
-        if contains_any_string(info.full_name, ..RENDERER_SRC_FILES) {
-            return;
-        }
-
-        if (!contains(info.full_name, ".h")) {
-            return;
-        }
-
-        array_add(*jolt_physics_include_files, info.full_name);
-    }
-
-    success := true;
-    visit_files(tprint("%/Jolt", JOLT_PHYSICS_PATH), recursive=true, *success, include_file_visitor_func, 
-        visit_files=true, visit_directories=true);
+    array_add(*jolt_physics_include_files, tprint("%/include/joltc.h", JOLTC_PATH));
 
     output_filename: string;
     opts: Generate_Bindings_Options;
@@ -169,7 +141,8 @@ generate_bindings :: (args: [] string) -> bool {
             footer = FOOTER_UNIX;
         }
         array_add(*libraries,     .{filename="jolt-physics"});
-        array_add(*include_paths, JOLT_PHYSICS_PATH);
+        array_add(*include_paths, jolt_physics_path);
+        array_add(*include_paths, tprint("%/include", JOLTC_PATH));
 
         array_reserve(*source_files, jolt_physics_include_files.count);
         for jolt_physics_include_files {
