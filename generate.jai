@@ -97,14 +97,20 @@ generate_bindings :: (args: [] string) -> bool {
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
             array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
-            array_add(*extra, "/GF");
-            array_add(*extra, "/Ob2");
+            array_add(*extra, "/GF"); // Enable String pooling
+            array_add(*extra, "/Ob2"); // Inline function expansion
+            array_add(*extra, "/Ot"); // Favor fast code
 
             if compile_debug {
-                array_add(*extra, "/Zi", "/Od", "/sdl", "/GS", "/Ob0", "/RTC1");
+                array_add(*extra, "/Od"); // Enable full optimization
+                array_add(*extra, "/sdl"); // Use security checks only in debug
+                array_add(*extra, "/Zi", "/GS", "/Ob0", "/RTC1");
             }
             else {
-                array_add(*extra, "-03", "/Ox", "/Oi", "/GT", "/sdl-", "/GS-", "/Gy", "/O2", "/Ot");
+                array_add(*extra, "/Ox"); // Enable full optimization
+                array_add(*extra, "/sdl-"); // Disable security checks in release
+                array_add(*extra, "/Oi"); // Enable intrinsic functions
+                array_add(*extra, "/GT", "/GS-", "/Gy", "/O2");
             }
 
             if compile_rtti {
