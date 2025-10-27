@@ -38,6 +38,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile        := array_find(args, "-compile");
     compile_debug  := array_find(args, "-debug");
     compile_rtti   := array_find(args, "-enable-rtti");
+    compile_platform_deterministic := array_find(args, "-cross-platform-deterministic");
 
     jolt_physics_path : string;
 
@@ -105,8 +106,6 @@ generate_bindings :: (args: [] string) -> bool {
                 array_add(*extra, "-03", "/Ox", "/Oi", "/GT", "/sdl-", "/GS-", "/Gy", "/O2", "/Ot");
             }
 
-            // made a huge assumption that this will always be using MSVC on windows
-            if CROSS_PLATFORM_DETERMINISTIC
             if compile_rtti {
                 array_add(*extra, "/GR");
             }
@@ -114,9 +113,12 @@ generate_bindings :: (args: [] string) -> bool {
                 array_add(*extra, "/GR-");
             }
 
+            if compile_platform_deterministic {
                 array_add(*extra, "/fp:precise");
-            else
+            }
+            else {
                 array_add(*extra, "/fp:fast");
+            }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }

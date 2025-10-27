@@ -10,4 +10,5 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | - | - |
 | -debug | enable debug symbols |
 | -compile_rtti | enable C++ exceptions (This adds some overhead and Jolt doesn't use exceptions) |
+| -cross-platform-deterministic | compile the library in such a way to keep the simulation deterministic across platforms |
 
