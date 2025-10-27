@@ -42,6 +42,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile_no_float_exceptions := array_find(args, "-disable-floating-point-exceptions");
     compile_asserts := array_find(args, "-use-asserts");
     compile_double_precision := array_find(args, "-double-precision");
+    compile_arm    := array_find(args, "-compile-arm");
 
     jolt_physics_path : string;
 
