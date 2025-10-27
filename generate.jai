@@ -39,6 +39,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile_debug  := array_find(args, "-debug");
     compile_rtti   := array_find(args, "-enable-rtti");
     compile_platform_deterministic := array_find(args, "-cross-platform-deterministic");
+    compile_no_float_exceptions := array_find(args, "-disable-floating-point-exceptions");
 
     jolt_physics_path : string;
 
@@ -118,6 +119,10 @@ generate_bindings :: (args: [] string) -> bool {
             }
             else {
                 array_add(*extra, "/fp:fast");
+            }
+
+            if !compile_no_float_exceptions {
+                array_add(*extra, "/DJPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
             }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
