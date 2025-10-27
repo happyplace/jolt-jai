@@ -9,7 +9,7 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | Option | Description |
 | - | - |
 | -debug | enable debug symbols |
-| -compile_rtti | enable C++ exceptions (This adds some overhead and Jolt doesn't use exceptions) |
+| -compile_rtti | enable C++ exceptions (This adds some overhead and Jolt doesn't use RTTI) |
 | -cross-platform-deterministic | compile the library in such a way to keep the simulation deterministic across platforms |
 | -disable-floating-point-exceptions | the library will emit extra code to ensure that the 4th component of a 3-vector is kept the same as the 3rd component and will enable floating point exceptions during simulation to detect divisions by zero. (only works for MSVC) |
 | -use-asserts | enable asserts |
