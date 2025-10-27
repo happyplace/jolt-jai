@@ -90,12 +90,20 @@ generate_bindings :: (args: [] string) -> bool {
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
+            array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
             array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
-            array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
+            array_add(*extra, "/GF");
             array_add(*extra, "/GR-"); // disable RTTI
-            array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
+            array_add(*extra, "/Ob2");
+
+            if compile_debug {
+                array_add(*extra, "/Zi", "/Od", "/sdl", "/GS", "/Ob0", "/RTC1");
+            }
+            else {
+                array_add(*extra, "-03", "/Ox", "/Oi", "/GT", "/sdl-", "/GS-", "/Gy", "/O2", "/Ot");
+            }
 
             // made a huge assumption that this will always be using MSVC on windows
             if CROSS_PLATFORM_DETERMINISTIC
