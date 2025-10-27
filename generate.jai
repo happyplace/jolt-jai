@@ -43,6 +43,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile_asserts := array_find(args, "-use-asserts");
     compile_double_precision := array_find(args, "-double-precision");
     compile_arm    := array_find(args, "-compile-arm");
+    compile_exceptions := array_find(args, "-enable-exceptions");
 
     jolt_physics_path : string;
 
@@ -98,8 +99,6 @@ generate_bindings :: (args: [] string) -> bool {
             make_directory_if_it_does_not_exist("windows");
             array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
-            array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
-            array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
             array_add(*extra, "/GF"); // Enable String pooling
             array_add(*extra, "/Ob2"); // Inline function expansion
             array_add(*extra, "/Ot"); // Favor fast code
@@ -114,6 +113,14 @@ generate_bindings :: (args: [] string) -> bool {
                 array_add(*extra, "/sdl-"); // Disable security checks in release
                 array_add(*extra, "/Oi"); // Enable intrinsic functions
                 array_add(*extra, "/GT", "/GS-", "/Gy", "/O2");
+            }
+
+            if compile_exceptions {
+                array_add(*extra, "/EHsc");
+            }
+            else {
+                array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
+                array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
             }
 
             if compile_rtti {
