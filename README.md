@@ -1,4 +1,4 @@
-# JoltPhysics-jai
+# jolt-jai
 Jai wrapper for [joltc](https://github.com/amerkoleci/joltc) which is a C wrapper for [Jolt Physics](https://github.com/jrouwe/JoltPhysics)
 
 # building
