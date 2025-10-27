@@ -9,4 +9,5 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | Option | Description |
 | - | - |
 | -debug | enable debug symbols |
+| -compile_rtti | enable C++ exceptions (This adds some overhead and Jolt doesn't use exceptions) |
 

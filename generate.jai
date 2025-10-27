@@ -37,6 +37,7 @@ jolt_physics_src_files: [..] string;
 generate_bindings :: (args: [] string) -> bool {
     compile        := array_find(args, "-compile");
     compile_debug  := array_find(args, "-debug");
+    compile_rtti   := array_find(args, "-enable-rtti");
 
     jolt_physics_path : string;
 
@@ -95,7 +96,6 @@ generate_bindings :: (args: [] string) -> bool {
             array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
             array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
             array_add(*extra, "/GF");
-            array_add(*extra, "/GR-"); // disable RTTI
             array_add(*extra, "/Ob2");
 
             if compile_debug {
@@ -107,6 +107,13 @@ generate_bindings :: (args: [] string) -> bool {
 
             // made a huge assumption that this will always be using MSVC on windows
             if CROSS_PLATFORM_DETERMINISTIC
+            if compile_rtti {
+                array_add(*extra, "/GR");
+            }
+            else {
+                array_add(*extra, "/GR-");
+            }
+
                 array_add(*extra, "/fp:precise");
             else
                 array_add(*extra, "/fp:fast");
