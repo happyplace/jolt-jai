@@ -13,4 +13,5 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | -cross-platform-deterministic | compile the library in such a way to keep the simulation deterministic across platforms |
 | -disable-floating-point-exceptions | the library will emit extra code to ensure that the 4th component of a 3-vector is kept the same as the 3rd component and will enable floating point exceptions during simulation to detect divisions by zero. (only works for MSVC) |
 | -use-asserts | enable asserts |
+| -double-precision | use doubles for positions. This allows for much bigger worlds. |
 

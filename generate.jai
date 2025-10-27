@@ -41,6 +41,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile_platform_deterministic := array_find(args, "-cross-platform-deterministic");
     compile_no_float_exceptions := array_find(args, "-disable-floating-point-exceptions");
     compile_asserts := array_find(args, "-use-asserts");
+    compile_double_precision := array_find(args, "-double-precision");
 
     jolt_physics_path : string;
 
@@ -134,6 +135,10 @@ generate_bindings :: (args: [] string) -> bool {
 
             if compile_asserts {
                 array_add(*extra, "/DJPH_ENABLE_ASSERTS");
+            }
+
+            if compile_double_precision {
+                array_add(*extra, "/DJPH_DOUBLE_PRECISION");
             }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
