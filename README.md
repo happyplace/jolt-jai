@@ -18,5 +18,5 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | -enable-exceptions | enable C++ exceptions (This adds some overhead and Jolt doesn't use exceptions) |
 | -track-broadphase-stats | periodically trace broadphase stats to help determine if the broadphase layer configuration is optimal |
 | -track-narrowphase-stats | periodically trace narrowphase stats to help determine which collision queries could be optimized |
-| -disable-debug-renderer | Enable the debug renderer in the Debug and Release builds. (Note that enabling this reduces the performance of the library even if you're not drawing anything.) | 
+| -disable-debug-renderer | disable the debug renderer in the Debug and Release builds. (Note that enabling this reduces the performance of the library even if you're not drawing anything.) | 
 
