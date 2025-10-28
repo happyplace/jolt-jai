@@ -17,4 +17,5 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | -compile-arm | cross compile for for aarch64-linux-gnu (only works on Linux) |
 | -enable-exceptions | enable C++ exceptions (This adds some overhead and Jolt doesn't use exceptions) |
 | -track-broadphase-stats | periodically trace broadphase stats to help determine if the broadphase layer configuration is optimal |
+| -track-narrowphase-stats | periodically trace narrowphase stats to help determine which collision queries could be optimized |
 
