@@ -44,6 +44,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile_double_precision := array_find(args, "-double-precision");
     compile_arm    := array_find(args, "-compile-arm");
     compile_exceptions := array_find(args, "-enable-exceptions");
+    compile_broadphase_stats := array_find(args, "-track-broadphase-stats");
 
     jolt_physics_path : string;
 
@@ -147,6 +148,10 @@ generate_bindings :: (args: [] string) -> bool {
 
             if compile_double_precision {
                 array_add(*extra, "/DJPH_DOUBLE_PRECISION");
+            }
+
+            if compile_broadphase_stats {
+                array_add(*extra, "/DJPH_TRACK_BROADPHASE_STATS");
             }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
