@@ -46,6 +46,7 @@ generate_bindings :: (args: [] string) -> bool {
     compile_exceptions := array_find(args, "-enable-exceptions");
     compile_broadphase_stats := array_find(args, "-track-broadphase-stats");
     compile_narrowphase_stats := array_find(args, "-track-narrowphase-stats");
+    compile_debug_renderer := array_find(args, "-disable-debug-renderer");
 
     jolt_physics_path : string;
 
@@ -157,6 +158,10 @@ generate_bindings :: (args: [] string) -> bool {
 
             if !compile_narrowphase_stats {
                 array_add(*extra, "/DJPH_TRACK_NARROWPHASE_STATS");
+            }
+
+            if !compile_debug_renderer {
+                array_add(*extra, "/DJPH_DEBUG_RENDERER");
             }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
