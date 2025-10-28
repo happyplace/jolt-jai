@@ -35,18 +35,18 @@ CROSS_PLATFORM_DETERMINISTIC := false;
 jolt_physics_src_files: [..] string;
 
 generate_bindings :: (args: [] string) -> bool {
-    compile        := array_find(args, "-compile");
-    compile_debug  := array_find(args, "-debug");
-    compile_rtti   := array_find(args, "-enable-rtti");
+    compile                        := array_find(args, "-compile");
+    compile_debug                  := array_find(args, "-debug");
+    compile_rtti                   := array_find(args, "-enable-rtti");
     compile_platform_deterministic := array_find(args, "-cross-platform-deterministic");
-    compile_no_float_exceptions := array_find(args, "-disable-floating-point-exceptions");
-    compile_asserts := array_find(args, "-use-asserts");
-    compile_double_precision := array_find(args, "-double-precision");
-    compile_arm    := array_find(args, "-compile-arm");
-    compile_exceptions := array_find(args, "-enable-exceptions");
-    compile_broadphase_stats := array_find(args, "-track-broadphase-stats");
-    compile_narrowphase_stats := array_find(args, "-track-narrowphase-stats");
-    compile_debug_renderer := array_find(args, "-disable-debug-renderer");
+    compile_no_float_exceptions    := array_find(args, "-disable-floating-point-exceptions");
+    compile_asserts                := array_find(args, "-use-asserts");
+    compile_double_precision       := array_find(args, "-double-precision");
+    compile_arm                    := array_find(args, "-compile-arm");
+    compile_exceptions             := array_find(args, "-enable-exceptions");
+    compile_broadphase_stats       := array_find(args, "-track-broadphase-stats");
+    compile_narrowphase_stats      := array_find(args, "-track-narrowphase-stats");
+    compile_debug_renderer         := array_find(args, "-disable-debug-renderer");
 
     jolt_physics_path : string;
 
@@ -156,7 +156,7 @@ generate_bindings :: (args: [] string) -> bool {
                 array_add(*extra, "/DJPH_TRACK_BROADPHASE_STATS");
             }
 
-            if !compile_narrowphase_stats {
+            if compile_narrowphase_stats {
                 array_add(*extra, "/DJPH_TRACK_NARROWPHASE_STATS");
             }
 
