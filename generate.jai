@@ -34,6 +34,23 @@ CROSS_PLATFORM_DETERMINISTIC := false;
 
 jolt_physics_src_files: [..] string;
 
+add_compiler_define :: (compiler_flags : *[..] string, enabled : bool, define : string) {
+    if !enabled {
+        return;
+    }
+
+    define_string : string;
+    #if OS == .WINDOWS {
+        define_string = tprint("/D%", define);
+    }
+    else {
+        assert(false);
+        return;
+    }
+
+    array_add(compiler_flags, define_string);
+}
+
 generate_bindings :: (args: [] string) -> bool {
     compile                        := array_find(args, "-compile");
     compile_debug                  := array_find(args, "-debug");
@@ -101,10 +118,22 @@ generate_bindings :: (args: [] string) -> bool {
         array_add(*extra, tprint("-I./%/", jolt_physics_path));
         array_add(*extra, tprint("-I./%/include", JOLTC_PATH));
 
+        add_compiler_define(*extra, true, "JPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
+
+        add_compiler_define(*extra, !compile_no_float_exceptions, "JPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
+        add_compiler_define(*extra, compile_asserts, "JPH_ENABLE_ASSERTS");
+        add_compiler_define(*extra, compile_double_precision, "JPH_DOUBLE_PRECISION");
+        add_compiler_define(*extra, compile_broadphase_stats, "JPH_TRACK_BROADPHASE_STATS");
+        add_compiler_define(*extra, compile_narrowphase_stats, "JPH_TRACK_NARROWPHASE_STATS");
+        add_compiler_define(*extra, !compile_debug_renderer, "JPH_DEBUG_RENDERER");
+        add_compiler_define(*extra, !compile_disable_profiler, "JPH_PROFILE_ENABLED");
+        add_compiler_define(*extra, compile_custom_allocator, "JPH_DISABLE_CUSTOM_ALLOCATOR");
+        add_compiler_define(*extra, compile_std_vector, "JPH_USE_STD_VECTOR");
+        add_compiler_define(*extra, !compile_object_stream, "JPH_OBJECT_STREAM");
+
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
-            array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
             array_add(*extra, "/GF"); // Enable String pooling
             array_add(*extra, "/Ob2"); // Inline function expansion
@@ -144,44 +173,7 @@ generate_bindings :: (args: [] string) -> bool {
                 array_add(*extra, "/fp:fast");
             }
 
-            if !compile_no_float_exceptions {
-                array_add(*extra, "/DJPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
-            }
 
-            if compile_asserts {
-                array_add(*extra, "/DJPH_ENABLE_ASSERTS");
-            }
-
-            if compile_double_precision {
-                array_add(*extra, "/DJPH_DOUBLE_PRECISION");
-            }
-
-            if compile_broadphase_stats {
-                array_add(*extra, "/DJPH_TRACK_BROADPHASE_STATS");
-            }
-
-            if compile_narrowphase_stats {
-                array_add(*extra, "/DJPH_TRACK_NARROWPHASE_STATS");
-            }
-
-            if !compile_debug_renderer {
-                array_add(*extra, "/DJPH_DEBUG_RENDERER");
-            }
-
-            if !compile_disable_profiler {
-                array_add(*extra, "/DJPH_PROFILE_ENABLED");
-            }
-
-            if compile_custom_allocator {
-                array_add(*extra, "/DJPH_DISABLE_CUSTOM_ALLOCATOR");
-            }
-
-            if compile_std_vector {
-                array_add(*extra, "/DJPH_USE_STD_VECTOR");
-            }
-
-            if !compile_object_stream {
-                array_add(*extra, "/DJPH_OBJECT_STREAM");
             }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
