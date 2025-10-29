@@ -21,4 +21,8 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | -track-broadphase-stats | periodically trace broadphase stats to help determine if the broadphase layer configuration is optimal |
 | -track-narrowphase-stats | periodically trace narrowphase stats to help determine which collision queries could be optimized |
 | -disable-debug-renderer | disable the debug renderer in the Debug and Release builds. (Note that enabling this reduces the performance of the library even if you're not drawing anything.) | 
+| -disable-profiler | disable the profiler in the Debug and Release builds. (Note that enabling this reduces the performance of the library.) |
+| -custom-allocator | force the library to use malloc/free instead of allowing the user to override the memory allocator |
+| -std-vector | force the library to use the STL vector instead of the custom Array class |
+| -disable-object-stream | disable compiling the ObjectStream class and RTTI attribute information |
 

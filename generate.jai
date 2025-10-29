@@ -47,6 +47,10 @@ generate_bindings :: (args: [] string) -> bool {
     compile_broadphase_stats       := array_find(args, "-track-broadphase-stats");
     compile_narrowphase_stats      := array_find(args, "-track-narrowphase-stats");
     compile_debug_renderer         := array_find(args, "-disable-debug-renderer");
+    compile_disable_profiler       := array_find(args, "-disable-profiler");
+    compile_custom_allocator       := array_find(args, "-custom-allocator");
+    compile_std_vector             := array_find(args, "-std-vector");
+    compile_object_stream          := array_find(args, "-disable-object-stream");
 
     jolt_physics_path : string;
 
@@ -162,6 +166,22 @@ generate_bindings :: (args: [] string) -> bool {
 
             if !compile_debug_renderer {
                 array_add(*extra, "/DJPH_DEBUG_RENDERER");
+            }
+
+            if !compile_disable_profiler {
+                array_add(*extra, "/DJPH_PROFILE_ENABLED");
+            }
+
+            if compile_custom_allocator {
+                array_add(*extra, "/DJPH_DISABLE_CUSTOM_ALLOCATOR");
+            }
+
+            if compile_std_vector {
+                array_add(*extra, "/DJPH_USE_STD_VECTOR");
+            }
+
+            if !compile_object_stream {
+                array_add(*extra, "/DJPH_OBJECT_STREAM");
             }
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
