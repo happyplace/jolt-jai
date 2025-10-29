@@ -121,15 +121,16 @@ generate_bindings :: (args: [] string) -> bool {
         add_compiler_define(*extra, true, "JPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
 
         add_compiler_define(*extra, !compile_no_float_exceptions, "JPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
-        add_compiler_define(*extra, compile_asserts, "JPH_ENABLE_ASSERTS");
-        add_compiler_define(*extra, compile_double_precision, "JPH_DOUBLE_PRECISION");
-        add_compiler_define(*extra, compile_broadphase_stats, "JPH_TRACK_BROADPHASE_STATS");
-        add_compiler_define(*extra, compile_narrowphase_stats, "JPH_TRACK_NARROWPHASE_STATS");
-        add_compiler_define(*extra, !compile_debug_renderer, "JPH_DEBUG_RENDERER");
-        add_compiler_define(*extra, !compile_disable_profiler, "JPH_PROFILE_ENABLED");
-        add_compiler_define(*extra, compile_custom_allocator, "JPH_DISABLE_CUSTOM_ALLOCATOR");
-        add_compiler_define(*extra, compile_std_vector, "JPH_USE_STD_VECTOR");
-        add_compiler_define(*extra, !compile_object_stream, "JPH_OBJECT_STREAM");
+        add_compiler_define(*extra, compile_asserts,              "JPH_ENABLE_ASSERTS");
+        add_compiler_define(*extra, compile_double_precision,     "JPH_DOUBLE_PRECISION");
+        add_compiler_define(*extra, compile_broadphase_stats,     "JPH_TRACK_BROADPHASE_STATS");
+        add_compiler_define(*extra, compile_narrowphase_stats,    "JPH_TRACK_NARROWPHASE_STATS");
+        add_compiler_define(*extra, !compile_debug_renderer,      "JPH_DEBUG_RENDERER");
+        add_compiler_define(*extra, !compile_disable_profiler,    "JPH_PROFILE_ENABLED");
+        add_compiler_define(*extra, compile_custom_allocator,     "JPH_DISABLE_CUSTOM_ALLOCATOR");
+        add_compiler_define(*extra, compile_std_vector,           "JPH_USE_STD_VECTOR");
+        add_compiler_define(*extra, !compile_object_stream,       "JPH_OBJECT_STREAM");
+
 
         success = true;
         #if OS == .WINDOWS {
