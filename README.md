@@ -1,15 +1,24 @@
 # jolt-jai
 Jai wrapper for [joltc](https://github.com/amerkoleci/joltc) which is a C wrapper for [Jolt Physics](https://github.com/jrouwe/JoltPhysics)
 
-## building
+## Generate Bindings
+`jai generate.jai`
 
-### getting joltc and JoltPhysics source code
-download joltc into the root directory under joltc
-run cmake -B build to automatically download Jolt Physics or manually download Jolt Physics into joltc/JoltPhysics
+### Compiling
+passing the `-compile` flag after `-` will compile the library before generating bindings
 
--debug
+`jai generate.jai - -compile`
+
+#### Enable Debug Symbols
+`jai generate.jai - -compile -debug`
+
+### joltc and Jolt Physics source code
+[joltc](https://github.com/amerkoleci/joltc) and [Jolt Physics](https://github.com/jrouwe/JoltPhysics) source code are not included with the project and need to be downloaded manually. joltc source code should be in a subdirectory called **[PROJECT_ROOT]/joltc**. Jolt Physics source code should be in a folder called JoltPhysics under the joltc directory, **[PROJECT_ROOT]/joltc/JoltPhysics**.
 
 ### Build Options
+options are specified using -option-flag=on or off.
+`jai generate.jai - -compile -exceptions=on -debug-renderer=off`
+
 | Option | Description | Default |
 | - | - | - |
 | -rtti | enable C++ exceptions (This adds some overhead and Jolt doesn't use RTTI) | off |
@@ -19,7 +28,7 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | -double-percision | use doubles for positions. This allows for much bigger worlds. | off |
 | -arm | cross compile for for aarch64-linux-gnu (only works on Linux) | off |
 | -exceptions | enable C++ exceptions (This adds some overhead and Jolt doesn't use exceptions) | off |
-| -broadphase-stats | eriodically trace broadphase stats to help determine if the broadphase layer configuration is optimal | off |
+| -broadphase-stats | periodically trace broadphase stats to help determine if the broadphase layer configuration is optimal | off |
 | -narrowphase-stats | periodically trace narrowphase stats to help determine which collision queries could be optimized | off |
 | -debug-renderer | enable the debug renderer in the Debug and Release builds. (Note that enabling this reduces the performance of the library even if you're not drawing anything.) | on |
 | -profiler | enable the profiler in the Debug and Release builds. (Note that enabling this reduces the performance of the library.) | off |
@@ -35,3 +44,6 @@ run cmake -B build to automatically download Jolt Physics or manually download J
 | -tzcnt | enable TZCNT | on |
 | -f16c | enable F16C | on |
 | -fmadd | enable FMADD | on |
+
+## Jai
+`Version: beta 0.2.018, built on 11 October 2025.`
