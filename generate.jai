@@ -29,9 +29,6 @@ POTENTIAL_JOLT_PHYSICS_PATHS :: string.[
     }
 }
 
-// when true jolt physics will be compiled in such a way to attempt to keep the simulation deterministic across platforms
-CROSS_PLATFORM_DETERMINISTIC := false;
-
 jolt_physics_src_files: [..] string;
 
 add_compiler_define :: (compiler_flags : *[..] string, enabled : bool, define : string) {
