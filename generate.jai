@@ -29,16 +29,96 @@ POTENTIAL_JOLT_PHYSICS_PATHS :: string.[
     }
 }
 
-// when true jolt physics will be compiled in such a way to attempt to keep the simulation deterministic across platforms
-CROSS_PLATFORM_DETERMINISTIC := false;
-
 jolt_physics_src_files: [..] string;
 
+add_compiler_define :: (compiler_flags : *[..] string, enabled : bool, define : string) {
+    if !enabled {
+        return;
+    }
+
+    define_string : string;
+    #if OS == .WINDOWS {
+        define_string = tprint("/D%", define);
+    }
+    else {
+        assert(false);
+        return;
+    }
+
+    array_add(compiler_flags, define_string);
+}
+
+Jolt_Build_Options :: struct {
+    rtti                         : bool = false;
+    cross_platform_deterministic : bool = false;
+    float_exceptions             : bool = true;
+    asserts                      : bool = false;
+    double_percision             : bool = false;
+    arm                          : bool = false;
+    exceptions                   : bool = false;
+    broadphase_stats             : bool = false;
+    narrowphase_stats            : bool = false;
+    debug_renderer               : bool = true;
+    profiler                     : bool = false;
+    custom_allocator             : bool = false;
+    std_vector                   : bool = false;
+    object_stream                : bool = true;
+    sse4_1                       : bool = true;
+    sse4_2                       : bool = true;
+    avx                          : bool = true;
+    avx2                         : bool = true;
+    avx512                       : bool = false;
+    lzcnt                        : bool = true;
+    tzcnt                        : bool = true;
+    f16c                         : bool = true;
+    fmadd                        : bool = true;
+}
+
+build_option_to_flag :: (build_option : string) -> string {
+    return tprint("-%", replace(build_option, "_", "-"));
+}
+
 generate_bindings :: (args: [] string) -> bool {
-    compile        := array_find(args, "-compile");
-    compile_debug  := array_find(args, "-debug");
+    compile                        := array_find(args, "-compile");
+    compile_debug                  := array_find(args, "-debug");
+
+    jolt_build_options : Jolt_Build_Options;
 
     jolt_physics_path : string;
+    info := cast(*Type_Info_Struct) type_info(Jolt_Build_Options);
+    for option_member : info.members {
+        build_option_flag := build_option_to_flag(option_member.name);
+        for args {
+            option : [] string = split(it, "=");
+            if option.count < 1 {
+                continue;
+            }
+
+            if !equal_nocase(option[0], build_option_flag) {
+                continue;
+            }
+
+            if option.count != 2 {
+                print("% build option invalid\n", option[0]);
+                return false;
+            }
+
+            value : bool;
+            if equal_nocase(option[1], "on") {
+                value = true;
+            }
+            else if equal_nocase(option[1], "off") {
+                value = false;
+            }
+            else {
+                print("% build option invalid\n", option[0]);
+                return false;
+            }
+
+            mem_dest := (cast(*u8)*jolt_build_options) + option_member.offset_in_bytes;
+            memset(mem_dest, cast(u8)value, option_member.type.runtime_size);
+        }
+    }
 
     if !file_exists(JOLTC_PATH) {
         print(tprint("% does not exist. Download joltc source code into folder\n", JOLTC_PATH));
@@ -87,21 +167,73 @@ generate_bindings :: (args: [] string) -> bool {
         array_add(*extra, tprint("-I./%/", jolt_physics_path));
         array_add(*extra, tprint("-I./%/include", JOLTC_PATH));
 
+        add_compiler_define(*extra, true, "JPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
+
+        add_compiler_define(*extra, jolt_build_options.asserts,           "JPH_ENABLE_ASSERTS");
+        add_compiler_define(*extra, jolt_build_options.double_percision,  "JPH_DOUBLE_PRECISION");
+        add_compiler_define(*extra, jolt_build_options.broadphase_stats,  "JPH_TRACK_BROADPHASE_STATS");
+        add_compiler_define(*extra, jolt_build_options.narrowphase_stats, "JPH_TRACK_NARROWPHASE_STATS");
+        add_compiler_define(*extra, jolt_build_options.debug_renderer,    "JPH_DEBUG_RENDERER");
+        add_compiler_define(*extra, jolt_build_options.profiler,          "JPH_PROFILE_ENABLED");
+        add_compiler_define(*extra, jolt_build_options.custom_allocator,  "JPH_DISABLE_CUSTOM_ALLOCATOR");
+        add_compiler_define(*extra, jolt_build_options.std_vector,        "JPH_USE_STD_VECTOR");
+        add_compiler_define(*extra, jolt_build_options.object_stream,     "JPH_OBJECT_STREAM");
+
+        add_compiler_define(*extra, jolt_build_options.sse4_1, "JPH_USE_SSE4_1");
+        add_compiler_define(*extra, jolt_build_options.sse4_2, "JPH_USE_SSE4_2");
+        add_compiler_define(*extra, jolt_build_options.avx ,   "JPH_USE_AVX");
+        add_compiler_define(*extra, jolt_build_options.avx2,   "JPH_USE_AVX2");
+        add_compiler_define(*extra, jolt_build_options.avx512, "JPH_USE_AVX512");
+        add_compiler_define(*extra, jolt_build_options.lzcnt,  "JPH_USE_LZCNT");
+        add_compiler_define(*extra, jolt_build_options.tzcnt,  "JPH_USE_TZCNT");
+        add_compiler_define(*extra, jolt_build_options.f16c,   "JPH_USE_F16C");
+        if jolt_build_options.cross_platform_deterministic {
+            add_compiler_define(*extra, jolt_build_options.fmadd, "JPH_USE_FMADD");
+        }
+
         success = true;
         #if OS == .WINDOWS {
             make_directory_if_it_does_not_exist("windows");
             array_add(*extra, "/std:c++17", "/Gm-", "/MP", "/nologo", "/FC", "/fp:except-", "/Zc:inline");
-            array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
-            array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
-            array_add(*extra, "/GS-", "/Gy", "/O2", "/Oi", "/Ot");
-            array_add(*extra, "/GR-"); // disable RTTI
-            array_add(*extra, "/DJPH_OBJECT_LAYER_BITS=32"); // joltc requires JPH_OBJECT_LAYER_BITS to be 32
+            array_add(*extra, "/GF"); // Enable String pooling
+            array_add(*extra, "/Ob2"); // Inline function expansion
+            array_add(*extra, "/Ot"); // Favor fast code
 
-            // made a huge assumption that this will always be using MSVC on windows
-            if CROSS_PLATFORM_DETERMINISTIC
+            if compile_debug {
+                array_add(*extra, "/Od"); // Enable full optimization
+                array_add(*extra, "/sdl"); // Use security checks only in debug
+                array_add(*extra, "/Zi", "/GS", "/Ob0", "/RTC1");
+            }
+            else {
+                array_add(*extra, "/Ox"); // Enable full optimization
+                array_add(*extra, "/sdl-"); // Disable security checks in release
+                array_add(*extra, "/Oi"); // Enable intrinsic functions
+                array_add(*extra, "/GT", "/GS-", "/Gy", "/O2");
+            }
+
+            if jolt_build_options.exceptions {
+                array_add(*extra, "/EHsc");
+            }
+            else {
+                array_add(*extra, "/wd4577"); // Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
+                array_add(*extra, "/wd4530"); // Disable more warnings about STL using exceptions when the rest of the program doesn't use it
+            }
+
+            if jolt_build_options.rtti {
+                array_add(*extra, "/GR");
+            }
+            else {
+                array_add(*extra, "/GR-");
+            }
+
+            if jolt_build_options.cross_platform_deterministic {
                 array_add(*extra, "/fp:precise");
-            else
+            }
+            else {
                 array_add(*extra, "/fp:fast");
+            }
+
+            add_compiler_define(*extra, jolt_build_options.float_exceptions, "JPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
 
             success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
@@ -174,4 +306,3 @@ FOOTER_UNIX :: #string END
 #if OS == .LINUX    imgui :: #library "linux/ImGui";
 
 END
-
