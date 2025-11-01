@@ -235,7 +235,7 @@ generate_bindings :: (args: [] string) -> bool {
 
             add_compiler_define(*extra, jolt_build_options.float_exceptions, "JPH_FLOATING_POINT_EXCEPTIONS_ENABLED");
 
-            success &&= build_cpp_static_lib("windows/jolt-physics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
+            success &&= build_cpp_static_lib("windows/JoltPhysics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
         else {
             assert(false);
@@ -272,7 +272,7 @@ generate_bindings :: (args: [] string) -> bool {
             generate_library_declarations = false;
             footer = FOOTER_UNIX;
         }
-        array_add(*libraries,     .{filename="jolt-physics"});
+        array_add(*libraries,     .{filename="JoltPhysics"});
         array_add(*include_paths, jolt_physics_path);
         array_add(*include_paths, tprint("%/include", JOLTC_PATH));
 
