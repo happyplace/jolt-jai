@@ -7,3 +7,8 @@ windows
 
 # windows object files
 *.obj
+
+# ignore everything in examples folder except jai files
+examples
+!examples/*.jai
+
