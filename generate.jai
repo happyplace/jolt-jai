@@ -40,6 +40,9 @@ add_compiler_define :: (compiler_flags : *[..] string, enabled : bool, define : 
     #if OS == .WINDOWS {
         define_string = tprint("/D%", define);
     }
+    else #if OS == .LINUX {
+        define_string = tprint("-D %", define);
+    }
     else {
         assert(false);
         return;
