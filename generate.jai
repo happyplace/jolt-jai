@@ -240,6 +240,73 @@ generate_bindings :: (args: [] string) -> bool {
 
             success &&= build_cpp_static_lib("windows/JoltPhysics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
+        else #if OS == .LINUX {
+            make_directory_if_it_does_not_exist("linux");
+            array_add(*extra, "-std=c++17", "-mfpmath=sse", "-pthread", "-ffp-model=precise");
+            // or system processor has "loongarch"
+            if jolt_build_options.cross_platform_deterministic {
+                array_add(*extra, "-ffp-contract=off");
+                // Clang 20 and later complain with: overriding '-ffp-model=precise' option with '-ffp-contract=off' [-Woverriding-option], but this is exactly what we want.
+                array_add(*extra, "-Wno-overriding-option");
+            }
+
+            if jolt_build_options.exceptions {
+                array_add(*extra, "-fexceptions");
+            }
+            else {
+                array_add(*extra, "-fno-exceptions");
+            }
+
+            if jolt_build_options.rtti {
+                array_add(*extra, "-frtti");
+            }
+            else {
+                array_add(*extra, "-fno-rtti");
+            }
+
+            if jolt_build_options.avx512 {
+                array_add(*extra, "-mavx512f", "-mavx512vl", "-mavx512dq", "-mavx2", "-mbmi", "-mpopcnt", "-mlzcnt", "-mf16c");
+            }
+            else if jolt_build_options.avx2 {
+                array_add(*extra, "-mavx2", "-mbmi", "-mpopcnt", "-mlzcnt", "-mf16c");
+            }
+            else if jolt_build_options.avx {
+                array_add(*extra, "-mavx", "-mpopcnt");
+            }
+            else if jolt_build_options.sse4_2 {
+                array_add(*extra, "-msse4.2", "-mpopcnt");
+            }
+            else if jolt_build_options.sse4_1 {
+                array_add(*extra, "-msse4.1");
+            }
+            else {
+                array_add(*extra, "-msse2");
+            }
+
+            if jolt_build_options.lzcnt {
+                array_add(*extra, "-mlzcnt");
+            }
+
+            if jolt_build_options.tzcnt {
+                array_add(*extra, "-mbmi");
+            }
+
+            if jolt_build_options.f16c {
+                array_add(*extra, "-mf16c");
+            }
+
+            if jolt_build_options.fmadd && !jolt_build_options.cross_platform_deterministic {
+                array_add(*extra, "-mfma");
+            }
+
+            if jolt_build_options.arm {
+                // TODO: do we need 32-bit arm? can we even compile 32-bit?
+                // arm-linux-gnueabihf - 32-bit target
+                array_add(*extra, "--target=aarch64-linux-gnu");
+            }
+
+            success &&= build_cpp_static_lib("linux/JoltPhysics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
+        }
         else {
             assert(false);
         }
@@ -305,7 +372,8 @@ generate_bindings :: (args: [] string) -> bool {
 
 FOOTER_UNIX :: #string END
 
-#if OS == .MACOS    imgui :: #library "macos/ImGui";
-#if OS == .LINUX    imgui :: #library "linux/ImGui";
+#if OS == .MACOS    joltphysics :: #library,no_dll "macos/JoltPhysics";
+#if OS == .LINUX    joltphysics :: #library,no_dll "linux/JoltPhysics";
 
 END
+
