@@ -5,5 +5,11 @@ joltc
 windows.jai
 windows
 
-# windows object files
+# object files
 *.obj
+*.o
+
+# generated unix library files and bindings
+unix.jai
+linux
+
