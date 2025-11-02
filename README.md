@@ -17,6 +17,7 @@ passing the `-compile` flag after `-` will compile the library before generating
 
 ### Build Options
 options are specified using -option-flag=on or off.
+
 `jai generate.jai - -compile -exceptions=on -debug-renderer=off`
 
 | Option | Description | Default |
