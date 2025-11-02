@@ -133,27 +133,26 @@ main :: () {
     DELTA_TIME :: 1.0 / 60.0;
 
     // Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
-	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
-	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
-	JPH_PhysicsSystem_OptimizeBroadPhase(system);
+    // You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
+    // Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
+    JPH_PhysicsSystem_OptimizeBroadPhase(system);
 
-	step : u32 = 0;
-	while (JPH_BodyInterface_IsActive(body_interface, sphere_id)) {
-	    // Next step
-		++step;
+    step : u32 = 0;
+    while (JPH_BodyInterface_IsActive(body_interface, sphere_id)) {
+        // Next step
 
         // Output current position and velocity of the sphere
-		position : JPH_RVec3;
-		velocity : JPH_RVec3;
+        position : JPH_RVec3;
+        velocity : JPH_RVec3;
 
-		JPH_BodyInterface_GetCenterOfMassPosition(body_interface, sphere_id, *position);
-		JPH_BodyInterface_GetLinearVelocity(body_interface, sphere_id, *velocity);
-		print("Step %: Position = (%, %, %), Velocity = (%, %, %)\n", step, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
+        JPH_BodyInterface_GetCenterOfMassPosition(body_interface, sphere_id, *position);
+        JPH_BodyInterface_GetLinearVelocity(body_interface, sphere_id, *velocity);
+        print("Step %: Position = (%, %, %), Velocity = (%, %, %)\n", step, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
 
-		// If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable. Do 1 collision step per 1 / 60th of a second (round up).
-		COLLISION_STEPS :: 1;
+        // If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable. Do 1 collision step per 1 / 60th of a second (round up).
+        COLLISION_STEPS :: 1;
 
         // Step the world
         JPH_PhysicsSystem_Update(system, DELTA_TIME, COLLISION_STEPS, job_system);
-	}
+    }
 }
