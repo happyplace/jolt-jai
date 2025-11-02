@@ -140,6 +140,7 @@ main :: () {
     step : u32 = 0;
     while (JPH_BodyInterface_IsActive(body_interface, sphere_id)) {
         // Next step
+        step = step + 1;
 
         // Output current position and velocity of the sphere
         position : JPH_RVec3;
