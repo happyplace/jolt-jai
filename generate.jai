@@ -306,6 +306,9 @@ generate_bindings :: (args: [] string) -> bool {
             }
 
             success &&= build_cpp_static_lib("linux/JoltPhysics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
+
+            add_compiler_define(*extra, true, "JPH_SHARED_LIBRARY_BUILD=1");
+            success &&= build_cpp_dynamic_lib("linux/JoltPhysics", ..jolt_physics_src_files, extra=extra, debug=compile_debug);
         }
         else {
             assert(false);
